@@ -7,6 +7,7 @@
 #include <assert.h>
 #include <math.h>
 #include <GL/gl.h>
+#include <GL/glext.h>
 #include "glm.h"
 /*
 #define DEBUG
