@@ -34,4 +34,9 @@ void __glmReportErrors(void);
 #define GL_BGRA GL_BGRA_EXT
 #endif
 
+
+GLubyte* glmReadJPG(const char*, GLboolean, int*, int*, int*);
+GLubyte* glmReadPNG(const char*, GLboolean, int*, int*, int*);
+GLubyte* glmReadSDL(const char*, GLboolean, int*, int*, int*);
+GLubyte* glmReadSimage(const char*, GLboolean, int*, int*, int*);
 #endif /* __glmint_h__ */

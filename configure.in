@@ -75,29 +75,53 @@ else
 fi
 
 dnl Test for libSDL_image
-AC_CHECK_LIB(SDL_image, IMG_Load,
-  SDL_image_ok=yes,
-  SDL_image_ok=no
-  AC_MSG_WARN(*** SDL_IMAGE library not found ***), -lm)
-if test "$SDL_image_ok" = yes; then
-  AC_MSG_CHECKING([for SDL/SDL_image.h])
-  AC_TRY_CPP(
-[#include <stdio.h>
+ac_sdl_image_desired=false
+AC_ARG_WITH(
+  sdl-image,
+  AC_HELP_STRING([--with-sdl-image=DIR],
+                 [use sdl-image for loading texture files]),
+  [case $withval in
+   yes) ac_sdl_image_desired=true ;;
+   no)  ac_sdl_image_desired=false ;;
+   *)   ac_sdl_image_desired=true
+        ac_sdl_image_extrapath=$withval ;;
+  esac],
+  [])
+if [ $ac_sdl_image_desired = true ]; then
+  AC_CHECK_LIB(SDL_image, IMG_Load,
+    SDL_image_ok=yes,
+    SDL_image_ok=no
+    AC_MSG_WARN(*** SDL_IMAGE library not found ***), -lm)
+  if test "$SDL_image_ok" = yes; then
+    AC_MSG_CHECKING([for SDL/SDL_image.h])
+    AC_TRY_CPP(
+  [#include <stdio.h>
 #undef PACKAGE
 #undef VERSION
 #include <SDL/SDL_image.h>],
-    SDL_image_ok=yes,
-    SDL_image_ok=no)
-  AC_MSG_RESULT($SDL_image_ok)
-  if test "$SDL_image_ok" = yes; then 
-    SDL_IMAGELIBS="-lSDL_image"
-    SUPPORT_LIBS="$SUPPORT_LIBS -lSDL_image";
-    AC_DEFINE(HAVE_LIBSDL_IMAGE, 1, [Define if you have the SDL_image library])
-  else
-    AC_MSG_WARN(*** SDL_IMAGE header file not found ***)
+      SDL_image_ok=yes,
+      SDL_image_ok=no)
+    AC_MSG_RESULT($SDL_image_ok)
+    if test "$SDL_image_ok" = yes; then 
+      SDL_IMAGELIBS="-lSDL_image"
+      SUPPORT_LIBS="$SUPPORT_LIBS -lSDL_image";
+      AC_DEFINE(HAVE_LIBSDL_IMAGE, 1, [Define if you have the SDL_image library])
+    else
+      AC_MSG_WARN(*** SDL_IMAGE header file not found ***)
+    fi
   fi
 fi
 AC_SUBST(SDL_IMAGELIBS)
+
+dnl Test for simage (www.coin3d.org)
+sim_ac_simage_desired=false
+SIM_AC_HAVE_SIMAGE_IFELSE(
+	SIMAGE_IMAGELIBS="$sim_ac_simage_libs"
+	SUPPORT_LIBS="$SUPPORT_LIBS $SIMAGE_IMAGELIBS";
+	AC_DEFINE(HAVE_LIBSIMAGE, 1, [Define if you have the simage library])
+	,
+	AC_MSG_WARN([*** Not using the simage library for loading textures (http://www.coin3d.org)])
+	)
 
 AM_CONDITIONAL(HAVE_GIF, test "x$GIFLIBS" != x)
 AM_CONDITIONAL(HAVE_TIFF, test "x$TIFFLIBS" != x)

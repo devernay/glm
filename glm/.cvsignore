@@ -6,3 +6,7 @@ libglm.la
 libglm_la-glm.lo
 libglm_la-glm_util.lo
 libglm_la-glmimg.lo
+libglm_la-glmimg_jpg.lo
+libglm_la-glmimg_png.lo
+libglm_la-glmimg_sdl.lo
+libglm_la-glmimg_sim.lo
