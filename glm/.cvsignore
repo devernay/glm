@@ -1,0 +1,8 @@
+.deps
+.libs
+Makefile
+Makefile.in
+libglm.la
+libglm_la-glm.lo
+libglm_la-glm_util.lo
+libglm_la-glmimg.lo
