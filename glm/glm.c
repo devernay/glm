@@ -34,8 +34,10 @@
 #include <string.h>
 #include <assert.h>
 #include "glm.h"
-//#define DEBUG
+/*
+#define DEBUG
 #define GLDEBUG
+*/
 #include "glmint.h"
 
 #define T(x) (model->triangles[(x)])
@@ -1557,7 +1559,7 @@ glmWriteOBJ(GLMmodel* model, char* filename, GLuint mode)
     GLuint  i;
     FILE*   file;
     GLMgroup* group;
-    GLuint material = -1;
+    GLuint material/* = -1*/;
     
     assert(model);
     
@@ -1819,8 +1821,8 @@ glmDraw(GLMmodel* model, GLuint mode)
        schemes (and these branches will always go one way), probably
        wouldn't gain too much?  */
     
-    // CHEESY BLENDING (AKA: NO SORTING)
-    // If model has blending, use two pass approach, alpha items last
+    /* CHEESY BLENDING (AKA: NO SORTING)
+       If model has blending, use two pass approach, alpha items last */
     for(blenditer = 0; blenditer<2; blenditer++) {
 	int blending = 0;
 	newmaterial = 0;
@@ -1919,13 +1921,13 @@ glmDraw(GLMmodel* model, GLuint mode)
 	if(!blendmodel)
 	    break;			/* jump out of the for(blenditer) */
 	assert(blendmodel);
-	// Prep for second pass with alpha items
+	/* Prep for second pass with alpha items */
 	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE); // Type Of Blending To Perform
-	glDepthMask(GL_FALSE);	// Turn off depth mask
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE); /* Type Of Blending To Perform */
+	glDepthMask(GL_FALSE);	/* Turn off depth mask */
     } /* for(blenditer) */
     if(blendmodel) {
-	glDepthMask(GL_TRUE);	//DISABLE Blending conditions
+	glDepthMask(GL_TRUE);	/* DISABLE Blending conditions */
 	glDisable(GL_BLEND);
     }
 }

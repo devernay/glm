@@ -14,7 +14,8 @@
  */
 
 
-#include <GL/glut.h>
+#include <GL/gl.h>
+#include <GL/glu.h>
 
 #define GLM_MAX_SHININESS 100.0 /* for Poser */
 #define GLM_MAX_TEXTURE_SIZE 1024 /* must be a power of 2 */

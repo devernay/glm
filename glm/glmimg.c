@@ -8,13 +8,17 @@
 #include <math.h>
 #include <GL/gl.h>
 #include "glm.h"
-//#define DEBUG
-//#define GLDEBUG
+/*
+#define DEBUG
+#define GLDEBUG
+*/
 #include "glmint.h"
 
 
-//#undef HAVE_LIBJPEG
-//#undef HAVE_LIBSDL_IMAGE
+/*
+#undef HAVE_LIBJPEG
+#undef HAVE_LIBSDL_IMAGE
+*/
 
 /* glmReadPPM: read a PPM raw (type P6) file.  The PPM file has a header
  * that should look something like:
