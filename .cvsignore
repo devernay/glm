@@ -12,6 +12,7 @@ config.status
 config.sub
 configure
 depcomp
+glm.spec
 install-sh
 libtool
 ltmain.sh

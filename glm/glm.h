@@ -30,6 +30,7 @@
 #define GLM_TEXTURE  (1 << 2)       /* render with texture coords */
 #define GLM_COLOR    (1 << 3)       /* render with colors */
 #define GLM_MATERIAL (1 << 4)       /* render with materials */
+#define GLM_2_SIDED  (1 << 5)       /* render two-sided polygons */
 
 /* GLMmaterial: Structure that defines a material in a model. 
  */
@@ -125,6 +126,10 @@ typedef struct _GLMmodel {
 
 } GLMmodel;
 
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* glmUnitize: "unitize" a model by translating it to the origin and
  * scaling it to fit in a unit cube around the origin.  Returns the
@@ -296,4 +301,7 @@ GLvoid glmFlipModelTextures(GLMmodel* model);
 //AVL END Prototypes
 #endif
 
+#ifdef __cplusplus
+}
+#endif
 #endif

@@ -14,12 +14,12 @@
       - added glmStrStrip function to handle filenames with spaces
       - handle material-by-face if there is more than one usemtl in a group
       - removed "static" from glmDraw variables (so that the code is reentrant)
+      - write obj with material-by-face
+      - added blending support, from GLM_AVL http://www.avl.iu.edu/projects/GLM_AVL/
 
       TODO:
       - allow CR, CRLF, or LF as end-of-line in input obj and mtl
-      - write obj with material-by-face [DONE]
       - glmVertexNormals(): have an option to add normals only where undefined
-      - added blending support, from GLM_AVL http://www.avl.iu.edu/projects/GLM_AVL/
 */
 
 #ifdef HAVE_CONFIG_H
@@ -1815,6 +1815,12 @@ glmDraw(GLMmodel* model, GLuint mode)
         glEnable(GL_TEXTURE_2D);
         glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
     }
+#ifdef GLM_2_SIDED
+    if(mode & GLM_2_SIDED)
+        glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
+    else
+        glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_FALSE);
+#endif
 
     /* perhaps this loop should be unrolled into material, color, flat,
        smooth, etc. loops?  since most cpu's have good branch prediction

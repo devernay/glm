@@ -25,6 +25,7 @@ if test $target_os = cygwin; then
 else
   AX_CHECK_GLUT
 fi
+AX_CHECK_GLUI
 
 dnl Test for libjpeg
 AC_CHECK_LIB(jpeg, jpeg_destroy_decompress,
@@ -135,5 +136,6 @@ AC_OUTPUT([ Makefile
 glm/Makefile
 examples/Makefile
 m4/Makefile
+glm.spec
 ])
 

@@ -2,4 +2,7 @@
 .libs
 Makefile
 Makefile.in
+game_glutobj
+gluiobj
+glutobj
 smooth
