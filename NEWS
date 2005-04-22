@@ -1,3 +1,9 @@
+Changes since version 0.2:
+
+- added support for DevIL
+  (suggested by Nuno Guerreiro <nuno.guerreiro@lesium.org>)
+
+
 Changes since Nate Robbins' glm.c:
 
 - warning/error functions in glm_util.c

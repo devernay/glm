@@ -1559,7 +1559,7 @@ glmWriteOBJ(GLMmodel* model, char* filename, GLuint mode)
     GLuint  i;
     FILE*   file;
     GLMgroup* group;
-    GLuint material/* = -1*/;
+    GLuint material = -1;
     
     assert(model);
     

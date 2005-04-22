@@ -35,6 +35,7 @@ void __glmReportErrors(void);
 #endif
 
 
+GLubyte* glmReadDevIL(const char*, GLboolean, int*, int*, int*);
 GLubyte* glmReadJPG(const char*, GLboolean, int*, int*, int*);
 GLubyte* glmReadPNG(const char*, GLboolean, int*, int*, int*);
 GLubyte* glmReadSDL(const char*, GLboolean, int*, int*, int*);

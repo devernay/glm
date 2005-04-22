@@ -129,6 +129,13 @@ glmLoadTexture(GLMmodel* model, const char *name, GLboolean alpha, GLboolean rep
 	goto DONE;
     }
 
+#ifdef HAVE_DEVIL
+    data = glmReadDevIL(filename, alpha, &width, &height, &type);
+    if(data != NULL) {
+	DBG_(__glmWarning("glmLoadTexture(): got DevIL for %s",filename));
+	goto DONE;
+    }
+#endif
 #ifdef HAVE_LIBJPEG
     data = glmReadJPG(filename, alpha, &width, &height, &type);
     if(data != NULL) {
