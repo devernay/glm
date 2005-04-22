@@ -1,6 +1,8 @@
 #ifndef __glmint_h__
 #define __glmint_h__
 
+extern GLenum _glmTextureTarget;
+
 /* private routines from glm_util.c */
 extern char * __glmStrStrip(const char *string);
 #ifdef HAVE_STRDUP

@@ -144,8 +144,7 @@ init(void)
     /* read in the model */
     model = glmReadOBJ(model_file);
     scale = glmUnitize(model);
-    glmFacetNormals(model);
-    glmVertexNormals(model, smoothing_angle);
+    glmVertexNormals(model, smoothing_angle, GL_TRUE);
 
     if (model->nummaterials > 0)
 	material_mode = 2;
@@ -341,8 +340,8 @@ keyboard(unsigned char key, int x, int y)
 
     case 'o':
 	glmWeld(model, weld_distance);
-    printf("Welded\n");
-	glmVertexNormals(model, smoothing_angle);
+	printf("Welded\n");
+	glmVertexNormals(model, smoothing_angle, GL_FALSE);
 	lists();
 	break;
 
@@ -351,21 +350,21 @@ keyboard(unsigned char key, int x, int y)
 	printf("Weld distance: %.2f\n", weld_distance);
 	glmWeld(model, weld_distance);
 	glmFacetNormals(model);
-	glmVertexNormals(model, smoothing_angle);
+	glmVertexNormals(model, smoothing_angle, GL_FALSE);
 	lists();
 	break;
 
     case '-':
 	smoothing_angle -= 1.0;
 	printf("Smoothing angle: %.1f\n", smoothing_angle);
-	glmVertexNormals(model, smoothing_angle);
+	glmVertexNormals(model, smoothing_angle, GL_FALSE);
 	lists();
 	break;
     
     case '+':
 	smoothing_angle += 1.0;
 	printf("Smoothing angle: %.1f\n", smoothing_angle);
-	glmVertexNormals(model, smoothing_angle);
+	glmVertexNormals(model, smoothing_angle, GL_FALSE);
 	lists();
 	break;
     
@@ -425,8 +424,7 @@ menu(int item)
 	strcat(name, direntp->d_name);
 	model = glmReadOBJ(name);
 	scale = glmUnitize(model);
-	glmFacetNormals(model);
-	glmVertexNormals(model, smoothing_angle);
+	glmVertexNormals(model, smoothing_angle, GL_TRUE);
 	
 	if (model->nummaterials > 0)
 	    material_mode = 2;

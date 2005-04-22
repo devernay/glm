@@ -20,6 +20,79 @@
 #undef HAVE_LIBJPEG
 #undef HAVE_LIBSDL_IMAGE
 */
+/* WARNING: GLOBAL VARIABLES */
+GLenum _glmTextureTarget = GL_TEXTURE_2D;
+static GLint gl_max_texture_size;
+static int glm_do_init = 1;
+static GLboolean gl_sgis_generate_mipmap = GL_FALSE;
+
+static GLboolean glmIsExtensionSupported(const char *extension)
+{
+
+    const GLubyte *extensions = NULL;
+    const GLubyte *start;
+    GLubyte *where, *terminator;
+
+    /* Extension names should not have spaces. */
+    where = (GLubyte *) strchr(extension, ' ');
+    if (where || *extension == '\0')
+	return 0;
+
+    extensions = glGetString(GL_EXTENSIONS);
+    if (!extensions)
+	return GL_FALSE;
+
+    /* It takes a bit of care to be fool-proof about parsing the
+       OpenGL extensions string.  Don't be fooled by sub-strings,
+       etc. */
+    start = extensions;
+    for (;;) {
+	where = (GLubyte *) strstr((const char *) start, extension);
+	if (!where)
+	    break;
+	terminator = where + strlen(extension);
+	if (where == start || *(where - 1) == ' ')
+	    if (*terminator == ' ' || *terminator == '\0')
+		return GL_TRUE;
+	start = terminator;
+    }
+    return GL_FALSE;
+}
+
+static void glmImgInit(void)
+{
+    glm_do_init = 0;
+    _glmTextureTarget = GL_TEXTURE_2D;
+    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &gl_max_texture_size);
+#if GLM_MAX_TEXTURE_SIZE > 0    
+#warning GLM_MAX_TEXTURE_SIZE
+    if(gl_max_texture_size > GLM_MAX_TEXTURE_SIZE)
+        gl_max_texture_size = GLM_MAX_TEXTURE_SIZE;
+#endif
+    //return;
+#if 0				/* rectangle textures */
+#ifdef GL_TEXTURE_RECTANGLE_ARB
+    if (glmIsExtensionSupported("GL_ARB_texture_rectangle")) {
+	DBG_(__glmWarning("glmImgInit(): GL_ARB_texture_rectangle is available"));
+	_glmTextureTarget = GL_TEXTURE_RECTANGLE_ARB;
+    }
+    else
+#endif
+#ifdef GL_TEXTURE_RECTANGLE_NV
+	if (glmIsExtensionSupported("GL_NV_texture_rectangle")) {
+	    DBG_(__glmWarning("glmImgInit(): GL_NV_texture_rectangle is available"));
+	    _glmTextureTarget = GL_TEXTURE_RECTANGLE_NV;
+	}
+#endif
+#endif				/* rectangle textures */
+#ifdef GL_GENERATE_MIPMAP_SGIS
+    if (glmIsExtensionSupported("GL_SGIS_generate_mipmap")) {
+	DBG_(__glmWarning("glmImgInit(): GL_SGIS_generate_mipmap is available"));
+	gl_sgis_generate_mipmap = GL_TRUE;
+    }
+#endif
+    /*_glmTextureTarget = GL_TEXTURE_2D;*/
+}
 
 /* glmReadPPM: read a PPM raw (type P6) file.  The PPM file has a header
  * that should look something like:
@@ -101,26 +174,20 @@ glmReadPPM(const char* filename, GLboolean alpha, int* width, int* height, int *
 
 /* don't try alpha=GL_FALSE: gluScaleImage implementations seem to be buggy */
 GLuint
-glmLoadTexture(GLMmodel* model, const char *name, GLboolean alpha, GLboolean repeat, GLboolean filtering, GLboolean mipmaps)
+glmLoadTexture(const char *filename, GLboolean alpha, GLboolean repeat, GLboolean filtering, GLboolean mipmaps, GLfloat *texcoordwidth, GLfloat *texcoordheight)
 {
     GLuint tex;
-    char *dir;
-    char *filename;
     int width, height,pixelsize;
     int type;
     int filter_min, filter_mag;
     GLubyte *data, *rdata;
-    GLint glMaxTexDim ;
     double xPow2, yPow2;
     int ixPow2, iyPow2;
     int xSize2, ySize2;
     GLint retval;
 
-    dir = __glmDirName(model->pathname);
-    filename = (char*)malloc(sizeof(char) * (strlen(dir) + strlen(name) + 1));
-    strcpy(filename, dir);
-    strcat(filename, name);
-    free(dir);
+    if(glm_do_init)
+	glmImgInit();
 
     /* fallback solution (PPM only) */
     data = glmReadPPM(filename, alpha, &width, &height, &type);
@@ -173,7 +240,6 @@ glmLoadTexture(GLMmodel* model, const char *name, GLboolean alpha, GLboolean rep
 #ifdef HAVE_LIBSDL_IMAGE
     DBG_(__glmWarning("glmLoadTexture() failed: tried SDL_image"));
 #endif
-    free(filename);
     return 0;
 
   DONE:
@@ -224,55 +290,56 @@ glmLoadTexture(GLMmodel* model, const char *name, GLboolean alpha, GLboolean rep
     else
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-    /* scale image to power of 2 in height and width */
-    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &glMaxTexDim);
-    if(glMaxTexDim > GLM_MAX_TEXTURE_SIZE)
-        glMaxTexDim = GLM_MAX_TEXTURE_SIZE;
-    
-    if (width <= glMaxTexDim)
-	xPow2 = log((double)width) / log(2.0);
-    else
-	xPow2 = log((double)glMaxTexDim) / log(2.0);
-
-    if (height <= glMaxTexDim)
-	yPow2 = log((double)height) / log(2.0);
-    else
-	yPow2 = log((double)glMaxTexDim) / log(2.0);
-
-    ixPow2 = (int)xPow2;
-    iyPow2 = (int)yPow2;
-
-    if (xPow2 != (double)ixPow2)
-	ixPow2++;
-    if (yPow2 != (double)iyPow2)
-	iyPow2++;
-
-    xSize2 = 1 << ixPow2;
-    ySize2 = 1 << iyPow2;
-
-#if 0				/* no rescaling */
     xSize2 = width;
+    if (xSize2 > gl_max_texture_size)
+	xSize2 = gl_max_texture_size;
     ySize2 = height;
-#else
+    if (ySize2 > gl_max_texture_size)
+	ySize2 = gl_max_texture_size;
+
+    if (_glmTextureTarget == GL_TEXTURE_2D) {
+	//if(1) {
+	/* scale image to power of 2 in height and width */
+	xPow2 = log((double)xSize2) / log(2.0);
+	yPow2 = log((double)ySize2) / log(2.0);
+
+	ixPow2 = (int)xPow2;
+	iyPow2 = (int)yPow2;
+
+	if (xPow2 != (double)ixPow2)
+	    ixPow2++;
+	if (yPow2 != (double)iyPow2)
+	    iyPow2++;
+
+	xSize2 = 1 << ixPow2;
+	ySize2 = 1 << iyPow2;
+    }
+	    
+    DBG_(__glmWarning("gl_max_texture_size=%d / width=%d / xSize2=%d / height=%d / ySize2 = %d", gl_max_texture_size, width, xSize2, height, ySize2));
     if((width != xSize2) || (height != ySize2)) {
+	/* TODO: use glTexSubImage2D instead */
+	DBG_(__glmWarning("scaling texture"));
 	rdata = (GLubyte*)malloc(sizeof(GLubyte) * xSize2 * ySize2 * pixelsize);
 	if (!rdata)
 	    return 0;
-       
+	    
 	retval = gluScaleImage(type, width, height,
-		      GL_UNSIGNED_BYTE, data,
-		      xSize2, ySize2, GL_UNSIGNED_BYTE,
-		      rdata);
+			       GL_UNSIGNED_BYTE, data,
+			       xSize2, ySize2, GL_UNSIGNED_BYTE,
+			       rdata);
 
 	free(data);
 	data = rdata;
-    }       
-#endif
+    }
 
     glGenTextures(1, &tex);		/* Generate texture ID */
-    glBindTexture(GL_TEXTURE_2D, tex);
+    glBindTexture(_glmTextureTarget, tex);
     DBG_(__glmWarning("building texture %d",tex));
    
+    if(mipmaps && _glmTextureTarget != GL_TEXTURE_2D) {
+	DBG_(__glmWarning("mipmaps only work with GL_TEXTURE_2D"));
+	mipmaps = 0;
+    }
     if(filtering) {
 	filter_min = (mipmaps) ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR;
 	filter_mag = GL_LINEAR;
@@ -281,24 +348,45 @@ glmLoadTexture(GLMmodel* model, const char *name, GLboolean alpha, GLboolean rep
 	filter_min = (mipmaps) ? GL_NEAREST_MIPMAP_NEAREST : GL_NEAREST;
 	filter_mag = GL_NEAREST;
     }
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter_min);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter_mag);
+    glTexParameteri(_glmTextureTarget, GL_TEXTURE_MIN_FILTER, filter_min);
+    glTexParameteri(_glmTextureTarget, GL_TEXTURE_MAG_FILTER, filter_mag);
    
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, (repeat) ? GL_REPEAT : GL_CLAMP);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, (repeat) ? GL_REPEAT : GL_CLAMP);
-    if(mipmaps) {
-	retval = gluBuild2DMipmaps(GL_TEXTURE_2D, type, xSize2, ySize2, type, 
-				   GL_UNSIGNED_BYTE, data);
+    glTexParameteri(_glmTextureTarget, GL_TEXTURE_WRAP_S, (repeat) ? GL_REPEAT : GL_CLAMP);
+    glTexParameteri(_glmTextureTarget, GL_TEXTURE_WRAP_T, (repeat) ? GL_REPEAT : GL_CLAMP);
+    if(mipmaps && _glmTextureTarget == GL_TEXTURE_2D) {
+	/* only works for GL_TEXTURE_2D */
+#ifdef GL_GENERATE_MIPMAP_SGIS
+	if(gl_sgis_generate_mipmap) {
+	    DBG_(__glmWarning("sgis mipmapping"));
+	    glTexParameteri(_glmTextureTarget, GL_GENERATE_MIPMAP_SGIS, GL_TRUE );
+	    glTexImage2D(_glmTextureTarget, 0, type, xSize2, ySize2, 0, type, 
+			 GL_UNSIGNED_BYTE, data);
+	}
+	else
+#endif
+	    {
+		DBG_(__glmWarning("glu mipmapping"));
+		gluBuild2DMipmaps(_glmTextureTarget, type, xSize2, ySize2, type, 
+				  GL_UNSIGNED_BYTE, data);
+	    }
     }
     else {
-	glTexImage2D(GL_TEXTURE_2D, 0, type, xSize2, ySize2, 0, type, 
+	glTexImage2D(_glmTextureTarget, 0, type, xSize2, ySize2, 0, type, 
 		     GL_UNSIGNED_BYTE, data);
     }
    
    
     /* Clean up and return the texture ID */
     free(data);
-    free(filename);
+
+    if (_glmTextureTarget == GL_TEXTURE_2D) {
+	*texcoordwidth = 1.;		/* texcoords are in [0,1] */
+	*texcoordheight = 1.;
+    }
+    else {
+	*texcoordwidth = xSize2;		/* size of texture coords */
+	*texcoordheight = ySize2;
+    }
    
     return tex;
 }

@@ -219,8 +219,7 @@ int main(int argc, char **argv)
 	    exit(0);
 	}
 	glmUnitize(pmodel);
-	glmFacetNormals(pmodel);
-	glmVertexNormals(pmodel, 90.0);
+	glmVertexNormals(pmodel, 90.0, GL_TRUE);
     }
 
     glutMainLoop();

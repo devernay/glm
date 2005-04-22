@@ -18,7 +18,8 @@
 #include <GL/glu.h>
 
 #define GLM_MAX_SHININESS 100.0 /* for Poser */
-#define GLM_MAX_TEXTURE_SIZE 1024 /* must be a power of 2 */
+#define GLM_MAX_TEXTURE_SIZE 0 /* must be a power of 2 (i.e. 1024).
+				  0 means no limit. */
 
 #ifndef M_PI
 #define M_PI 3.14159265f
@@ -77,6 +78,8 @@ typedef struct _GLMtriangle {
 typedef struct _GLMtexture {
   char *name;
   GLuint id;                    /* OpenGL texture ID */
+  GLfloat width;		/* width and height for texture coordinates */
+  GLfloat height;
 } GLMtexture;
 
 
@@ -190,9 +193,10 @@ glmFacetNormals(GLMmodel* model);
  *
  * model - initialized GLMmodel structure
  * angle - maximum angle (in degrees) to smooth across
+ * keep_existing - if GL_TRUE, do not overwrite existing normals
  */
 GLvoid
-glmVertexNormals(GLMmodel* model, GLfloat angle);
+glmVertexNormals(GLMmodel* model, GLfloat angle, GLboolean keep_existing);
 
 /* glmLinearTexture: Generates texture coordinates according to a
  * linear projection of the texture map.  It generates these by
@@ -288,7 +292,7 @@ GLvoid
 glmWeld(GLMmodel* model, GLfloat epsilon);
 
 GLuint
-glmLoadTexture(GLMmodel* model, const char *name, GLboolean alpha, GLboolean repeat, GLboolean filtering, GLboolean mipmaps);
+glmLoadTexture(const char *filename, GLboolean alpha, GLboolean repeat, GLboolean filtering, GLboolean mipmaps, GLfloat *width, GLfloat *height);
 
 #ifdef AVL
 //AVL Prototypes

@@ -151,8 +151,7 @@ int main(int argc, char* argv[])
       pmodel = glmReadOBJ(filename);
       if (!pmodel) exit(0);
       glmUnitize(pmodel);  
-      glmFacetNormals(pmodel);  
-      glmVertexNormals(pmodel, 90.0);
+      glmVertexNormals(pmodel, 90.0, GL_TRUE);
   }
 
 
@@ -280,9 +279,7 @@ void control_cb( int control )
             
       if (!pmodel) exit(0);
       glmUnitize(pmodel);  
-      glmFacetNormals(pmodel);  
-
-      glmVertexNormals(pmodel, 90.0);
+      glmVertexNormals(pmodel, 90.0, GL_TRUE);
   }
   */
 }
@@ -498,8 +495,7 @@ void check_file(int ID)
       
             if (!pmodel) exit(0);
             glmUnitize(pmodel);  
-            glmFacetNormals(pmodel);    
-            glmVertexNormals(pmodel, 90.0);
+            glmVertexNormals(pmodel, 90.0, GL_TRUE);
         }
       else
         printf("\n%s does not exist.\n", EditText->get_text());

@@ -252,7 +252,9 @@ static GLuint
 glmFindOrAddTexture(GLMmodel* model, const char* name)
 {
     GLuint i;
-    
+    char *dir, *filename;
+    float width, height;
+
     /* XXX doing a linear search on a string key'd list is pretty lame,
        but it works and is fast enough for now. */
     for (i = 0; i < model->numtextures; i++) {
@@ -260,14 +262,24 @@ glmFindOrAddTexture(GLMmodel* model, const char* name)
             return i;
     }
     
+    dir = __glmDirName(model->pathname);
+    filename = (char*)malloc(sizeof(char) * (strlen(dir) + strlen(name) + 1));
+    strcpy(filename, dir);
+    strcat(filename, name);
+    free(dir);
+
     /* didn't find the name, so print a warning and return the default
        texture (0). */
     model->numtextures++;
     model->textures = (GLMtexture*)realloc(model->textures, sizeof(GLMtexture)*model->numtextures);
     model->textures[model->numtextures-1].name = strdup(name);
     model->textures[model->numtextures-1].id =
-        glmLoadTexture(model, name, GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-    DBG_(__glmWarning("allocated texture %d (id=%d)",model->numtextures-1, model->textures[model->numtextures-1].id));
+        glmLoadTexture(filename, GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE, &width, &height);
+    model->textures[model->numtextures-1].width = width;
+    model->textures[model->numtextures-1].height = height;
+    DBG_(__glmWarning("allocated texture %d (id=%d,width=%g,height=%g)",model->numtextures-1, model->textures[model->numtextures-1].id, width, height));
+
+    free(filename);
 
     return model->numtextures-1;
 }
@@ -690,7 +702,7 @@ static GLvoid
 glmSecondPass(GLMmodel* model, FILE* file) 
 {
     GLuint  numvertices;        /* number of vertices in model */
-GLuint  numnormals;         /* number of normals in model */
+    GLuint  numnormals;         /* number of normals in model */
     GLuint  numtexcoords;       /* number of texcoords in model */
     GLuint  numtriangles;       /* number of triangles in model */
     GLfloat*    vertices;           /* array of vertices  */
@@ -768,6 +780,7 @@ GLuint  numnormals;         /* number of normals in model */
                 break;
             case 'f':               /* face */
                 v = n = t = 0;
+		T(numtriangles).findex = -1;
 #ifdef MATERIAL_BY_FACE
                 if(group->material == 0)
                     group->material = material;
@@ -1112,34 +1125,35 @@ glmFacetNormals(GLMmodel* model)
     assert(model->vertices);
     
     /* clobber any old facetnormals */
-    if (model->facetnorms)
-        free(model->facetnorms);
-    
+    if (model->facetnorms) {
+	free(model->facetnorms);
+    }
     /* allocate memory for the new facet normals */
     model->numfacetnorms = model->numtriangles;
     model->facetnorms = (GLfloat*)malloc(sizeof(GLfloat) *
-                       3 * (model->numfacetnorms + 1));
-    
+					 3 * (model->numfacetnorms + 1));
+
     for (i = 0; i < model->numtriangles; i++) {
-        model->triangles[i].findex = i+1;
+	T(i).findex = i+1;
         
-        u[0] = model->vertices[3 * T(i).vindices[1] + 0] -
-            model->vertices[3 * T(i).vindices[0] + 0];
-        u[1] = model->vertices[3 * T(i).vindices[1] + 1] -
-            model->vertices[3 * T(i).vindices[0] + 1];
-        u[2] = model->vertices[3 * T(i).vindices[1] + 2] -
-            model->vertices[3 * T(i).vindices[0] + 2];
+	u[0] = model->vertices[3 * T(i).vindices[1] + 0] -
+	    model->vertices[3 * T(i).vindices[0] + 0];
+	u[1] = model->vertices[3 * T(i).vindices[1] + 1] -
+	    model->vertices[3 * T(i).vindices[0] + 1];
+	u[2] = model->vertices[3 * T(i).vindices[1] + 2] -
+	    model->vertices[3 * T(i).vindices[0] + 2];
+	    
+	v[0] = model->vertices[3 * T(i).vindices[2] + 0] -
+	    model->vertices[3 * T(i).vindices[0] + 0];
+	v[1] = model->vertices[3 * T(i).vindices[2] + 1] -
+	    model->vertices[3 * T(i).vindices[0] + 1];
+	v[2] = model->vertices[3 * T(i).vindices[2] + 2] -
+	    model->vertices[3 * T(i).vindices[0] + 2];
         
-        v[0] = model->vertices[3 * T(i).vindices[2] + 0] -
-            model->vertices[3 * T(i).vindices[0] + 0];
-        v[1] = model->vertices[3 * T(i).vindices[2] + 1] -
-            model->vertices[3 * T(i).vindices[0] + 1];
-        v[2] = model->vertices[3 * T(i).vindices[2] + 2] -
-            model->vertices[3 * T(i).vindices[0] + 2];
-        
-        glmCross(u, v, &model->facetnorms[3 * (i+1)]);
-        glmNormalize(&model->facetnorms[3 * (i+1)]);
+	glmCross(u, v, &model->facetnorms[3 * (i+1)]);
+	glmNormalize(&model->facetnorms[3 * (i+1)]);
     }
+
 }
 
 /* glmVertexNormals: Generates smooth vertex normals for a model.
@@ -1159,7 +1173,7 @@ glmFacetNormals(GLMmodel* model)
  * angle - maximum angle (in degrees) to smooth across
  */
 GLvoid
-glmVertexNormals(GLMmodel* model, GLfloat angle)
+glmVertexNormals(GLMmodel* model, GLfloat angle, GLboolean keep_existing)
 {
     GLMnode*    node;
     GLMnode*    tail;
@@ -1168,22 +1182,29 @@ glmVertexNormals(GLMmodel* model, GLfloat angle)
     GLuint  numnormals;
     GLfloat average[3];
     GLfloat dot, cos_angle;
-    GLuint  i, avg;
+    GLuint  i, avg_index;
     
+    DBG_(__glmWarning( "glmVertexNormals(): begin"));
     assert(model);
     assert(model->facetnorms);
     
     /* calculate the cosine of the angle (in degrees) */
     cos_angle = cos(angle * M_PI / 180.0);
-    
-    /* nuke any previous normals */
-    if (model->normals)
-        free(model->normals);
-    
-    /* allocate space for new normals */
-    model->numnormals = model->numtriangles * 3; /* 3 normals per triangle */
-    model->normals = (GLfloat*)malloc(sizeof(GLfloat)* 3* (model->numnormals+1));
-    
+
+    if(keep_existing) {
+	numnormals = model->numnormals + 1; /* index of the next normal */
+    }
+    else {
+	/* nuke any previous normals */
+	if (model->normals) {
+	    free(model->normals);
+	}
+	/* allocate space for new normals */
+	model->numnormals = model->numtriangles * 3; /* 3 normals per triangle */
+	model->normals = (GLfloat*)malloc(sizeof(GLfloat)* 3* (model->numnormals + 1));
+	numnormals = 1;
+    }
+
     /* allocate a structure that will hold a linked list of triangle
     indices for each vertex */
     members = (GLMnode**)malloc(sizeof(GLMnode*) * (model->numvertices + 1));
@@ -1192,6 +1213,10 @@ glmVertexNormals(GLMmodel* model, GLfloat angle)
     
     /* for every triangle, create a node for each vertex in it */
     for (i = 0; i < model->numtriangles; i++) {
+	assert(T(i).vindices[0] <= model->numvertices);
+	assert(T(i).vindices[1] <= model->numvertices);
+	assert(T(i).vindices[2] <= model->numvertices);
+
         node = (GLMnode*)malloc(sizeof(GLMnode));
         node->index = i;
         node->next  = members[T(i).vindices[0]];
@@ -1209,7 +1234,6 @@ glmVertexNormals(GLMmodel* model, GLfloat angle)
     }
     
     /* calculate the average normal for each vertex */
-    numnormals = 1;
     for (i = 1; i <= model->numvertices; i++) {
 	/* calculate an average normal for this vertex by averaging the
 	   facet normal of every triangle this vertex is in */
@@ -1217,65 +1241,104 @@ glmVertexNormals(GLMmodel* model, GLfloat angle)
         if (!node)
             __glmWarning( "glmVertexNormals(): vertex %d w/o a triangle", i);
         average[0] = 0.0; average[1] = 0.0; average[2] = 0.0;
-        avg = 0;
         while (node) {
-	    /* only average if the dot product of the angle between the two
-	       facet normals is greater than the cosine of the threshold
-	       angle -- or, said another way, the angle between the two
-	       facet normals is less than (or equal to) the threshold angle */
-            dot = glmDot(&model->facetnorms[3 * T(node->index).findex],
-			 &model->facetnorms[3 * T(members[i]->index).findex]);
-            if (dot > cos_angle) {
-                node->averaged = GL_TRUE;
-                average[0] += model->facetnorms[3 * T(node->index).findex + 0];
-                average[1] += model->facetnorms[3 * T(node->index).findex + 1];
-                average[2] += model->facetnorms[3 * T(node->index).findex + 2];
-                avg = 1;            /* we averaged at least one normal! */
-            } else {
-                node->averaged = GL_FALSE;
-            }
+	    node->averaged = GL_FALSE;
+	    if ((T(node->index).findex != -1) && (T(members[i]->index).findex != -1)) {
+		/* only average if the dot product of the angle between the two
+		   facet normals is greater than the cosine of the threshold
+		   angle -- or, said another way, the angle between the two
+		   facet normals is less than (or equal to) the threshold angle */
+		assert(T(node->index).findex <= model->numfacetnorms);
+		assert(T(members[i]->index).findex <= model->numfacetnorms);
+		dot = glmDot(&model->facetnorms[3 * T(node->index).findex],
+			     &model->facetnorms[3 * T(members[i]->index).findex]);
+		if (dot > cos_angle) {
+		    node->averaged = GL_TRUE;
+		    average[0] += model->facetnorms[3 * T(node->index).findex + 0];
+		    average[1] += model->facetnorms[3 * T(node->index).findex + 1];
+		    average[2] += model->facetnorms[3 * T(node->index).findex + 2];
+		}
+	    }
             node = node->next;
         }
         
-        if (avg) {
-            /* normalize the averaged normal */
-            glmNormalize(average);
-            
-            /* add the normal to the vertex normals list */
-            model->normals[3 * numnormals + 0] = average[0];
-            model->normals[3 * numnormals + 1] = average[1];
-            model->normals[3 * numnormals + 2] = average[2];
-            avg = numnormals;
-            numnormals++;
-        }
-        
         /* set the normal of this vertex in each triangle it is in */
+	int avg_index = -1;
         node = members[i];
         while (node) {
+	    int j;
+
             if (node->averaged) {
                 /* if this node was averaged, use the average normal */
-                if (T(node->index).vindices[0] == i)
-                    T(node->index).nindices[0] = avg;
-                else if (T(node->index).vindices[1] == i)
-                    T(node->index).nindices[1] = avg;
-                else if (T(node->index).vindices[2] == i)
-                    T(node->index).nindices[2] = avg;
-            } else {
-                /* if this node wasn't averaged, use the facet normal */
+		for (j = 0; j<3; j++) {
+		    assert(T(node->index).vindices[j] <= model->numvertices);
+		    if (T(node->index).vindices[j] == i) {
+			if(T(node->index).nindices[j] > numnormals);
+			assert(T(node->index).nindices[j] == -1 || T(node->index).nindices[j] <= model->numnormals);
+			if (!keep_existing || T(node->index).nindices[j] == -1) {
+			    if (avg_index == -1) {
+				while (model->numnormals < numnormals) {
+				    DBG_(__glmWarning( "glmVertexNormals(): realloc %d+100\n", model->numnormals+100));
+				    /* allocate 1000 more normals */
+				    model->numnormals += 1000;
+				    model->normals = (GLfloat*)realloc(model->normals, sizeof(GLfloat)* 3 * (model->numnormals+1));
+				}
+				
+				/* normalize the averaged normal */
+				glmNormalize(average);
+				
+				/* add the normal to the vertex normals list */
+				assert(model->numnormals >= numnormals);
+				model->normals[3 * numnormals + 0] = average[0];
+				model->normals[3 * numnormals + 1] = average[1];
+				model->normals[3 * numnormals + 2] = average[2];
+				avg_index = numnormals;
+				numnormals++;
+			    }
+			    T(node->index).nindices[j] = avg_index;
+			}
+		    }
+		}
+            } else if (T(node->index).findex != -1) {
+		int discard = 1;
+
+		while (model->numnormals < numnormals) {
+		    __glmWarning( "glmVertexNormals(): realloc %d+100\n", model->numnormals+100);
+		    /* allocate 100 more normals */
+		    model->numnormals += 100;
+		    model->normals = (GLfloat*)realloc(model->normals, sizeof(GLfloat)* 3 * (model->numnormals+1));
+		}
+                assert(T(node->index).findex == -1 || T(node->index).findex <= model->numfacetnorms);
+		assert(model->numnormals >= numnormals);
+		/* if this node wasn't averaged, use the facet normal */
                 model->normals[3 * numnormals + 0] = 
                     model->facetnorms[3 * T(node->index).findex + 0];
                 model->normals[3 * numnormals + 1] = 
                     model->facetnorms[3 * T(node->index).findex + 1];
                 model->normals[3 * numnormals + 2] = 
                     model->facetnorms[3 * T(node->index).findex + 2];
-                if (T(node->index).vindices[0] == i)
-                    T(node->index).nindices[0] = numnormals;
-                else if (T(node->index).vindices[1] == i)
-                    T(node->index).nindices[1] = numnormals;
-                else if (T(node->index).vindices[2] == i)
-                    T(node->index).nindices[2] = numnormals;
-                numnormals++;
-            }
+		for (j = 0; j<3; j++) {
+		    assert(T(node->index).vindices[j] <= model->numvertices);
+		    if (T(node->index).vindices[j] == i) {
+			assert(T(node->index).nindices[j] == -1 || T(node->index).nindices[j] <= model->numnormals);
+			if (!keep_existing || T(node->index).nindices[j] == -1) {
+			    discard = 0;
+			    T(node->index).nindices[j] = numnormals;
+			}
+		    }
+		}
+		if (!discard)
+		    numnormals++;
+            } else {
+		for (j = 0; j<3; j++) {
+		    assert(T(node->index).vindices[j] <= model->numvertices);
+		    if (T(node->index).vindices[j] == i) {
+			assert(T(node->index).nindices[j] <= model->numnormals);
+			if (!keep_existing)
+			    T(node->index).nindices[j] = -1;
+		    }
+		}
+	    }
             node = node->next;
         }
     }
@@ -1305,6 +1368,7 @@ glmVertexNormals(GLMmodel* model, GLfloat angle)
         model->normals[3 * i + 2] = normals[3 * i + 2];
     }
     free(normals);
+    DBG_(__glmWarning( "glmVertexNormals(): end"));
 }
 
 
@@ -1477,7 +1541,8 @@ glmReadOBJ(char* filename)
 {
     GLMmodel* model;
     FILE*   file;
-    
+    int i, j;
+
     /* open the file */
     file = fopen(filename, "r");
     if (!file) {
@@ -1531,7 +1596,25 @@ glmReadOBJ(char* filename)
     rewind(file);
     
     glmSecondPass(model, file);
-    
+
+    /* facet normals are not in the file, we have to compute them anyway */
+    glmFacetNormals(model);
+
+    /* verify the indices */
+    for (i = 0; i < model->numtriangles; i++) {
+	if (T(i).findex != -1)
+	    if (T(i).findex <= 0 || T(i).findex > model->numfacetnorms)
+		__glmFatalError("facet index for triangle %d out of bounds (%d > %d)\n", i, T(i).findex, model->numfacetnorms);
+	for (j=0; j<3; j++) {
+	    if (T(i).nindices[j] != -1)
+		if (T(i).nindices[j] <= 0 || T(i).nindices[j] > model->numnormals)
+		    __glmFatalError("normal index for triangle %d out of bounds (%d > %d)\n", i, T(i).nindices[j], model->numnormals);
+	    if (T(i).vindices[j] != -1)
+		if (T(i).vindices[j] <= 0 || T(i).vindices[j] > model->numvertices)
+		    __glmFatalError("vertex index for triangle %d out of bounds (%d > %d)\n", i, T(i).vindices[j], model->numvertices);
+	}
+    }
+
     /* close the file */
     fclose(file);
     
@@ -1760,7 +1843,7 @@ glmWriteOBJ(GLMmodel* model, char* filename, GLuint mode)
 GLvoid
 glmDraw(GLMmodel* model, GLuint mode)
 {
-    GLuint i;
+    GLuint i, j;
     GLuint blenditer, newmaterial, newtexture;
     GLuint blendmodel = 0;
     GLMgroup* group;
@@ -1812,7 +1895,7 @@ glmDraw(GLMmodel* model, GLuint mode)
     else if (mode & GLM_MATERIAL)
         glDisable(GL_COLOR_MATERIAL);
     if (mode & GLM_TEXTURE) {
-        glEnable(GL_TEXTURE_2D);
+        glEnable(_glmTextureTarget);
         glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
     }
 #ifdef GLM_2_SIDED
@@ -1880,9 +1963,9 @@ glmDraw(GLMmodel* model, GLuint mode)
 				newtexture = 0;
 				glEnd();
 				if(map_diffuse == -1)
-				    glBindTexture(GL_TEXTURE_2D, 0);
+				    glBindTexture(_glmTextureTarget, 0);
 				else
-				    glBindTexture(GL_TEXTURE_2D, model->textures[map_diffuse].id);
+				    glBindTexture(_glmTextureTarget, model->textures[map_diffuse].id);
 				glBegin(GL_TRIANGLES);
 			    }
 			}
@@ -1900,23 +1983,19 @@ glmDraw(GLMmodel* model, GLuint mode)
 		    if (mode & GLM_FLAT)
 			glNormal3fv(&model->facetnorms[3 * triangle->findex]);
 		
-		    if (mode & GLM_SMOOTH && (triangle->nindices[0]!=-1))
-			glNormal3fv(&model->normals[3 * triangle->nindices[0]]);
-		    if (mode & GLM_TEXTURE && (triangle->tindices[0]!=-1))
-			glTexCoord2fv(&model->texcoords[2 * triangle->tindices[0]]);
-		    glVertex3fv(&model->vertices[3 * triangle->vindices[0]]);
-		
-		    if (mode & GLM_SMOOTH && (triangle->nindices[1]!=-1))
-			glNormal3fv(&model->normals[3 * triangle->nindices[1]]);
-		    if (mode & GLM_TEXTURE && (triangle->tindices[1]!=-1))
-			glTexCoord2fv(&model->texcoords[2 * triangle->tindices[1]]);
-		    glVertex3fv(&model->vertices[3 * triangle->vindices[1]]);
-		
-		    if (mode & GLM_SMOOTH && (triangle->nindices[2]!=-1))
-			glNormal3fv(&model->normals[3 * triangle->nindices[2]]);
-		    if (mode & GLM_TEXTURE && (triangle->tindices[2]!=-1))
-			glTexCoord2fv(&model->texcoords[2 * triangle->tindices[2]]);
-		    glVertex3fv(&model->vertices[3 * triangle->vindices[2]]);
+		    for (j=0; j<3; j++) {
+			if (mode & GLM_SMOOTH && (triangle->nindices[j]!=-1)) {
+			    assert(triangle->nindices[j]>=1 && triangle->nindices[j]<=model->numnormals);
+			    glNormal3fv(&model->normals[3 * triangle->nindices[j]]);
+			}
+			if (mode & GLM_TEXTURE && (triangle->tindices[j]!=-1) && map_diffuse != -1) {
+			    assert(map_diffuse >= 0 && map_diffuse < model->numtextures);
+			    assert(triangle->tindices[j]>=1 && triangle->tindices[j]<=model->numtexcoords);
+			    glTexCoord2f(model->texcoords[2 * triangle->tindices[j]]*model->textures[map_diffuse].width,model->texcoords[2 * triangle->tindices[j] + 1]*model->textures[map_diffuse].height);
+			}
+			assert(triangle->vindices[j]>=1 && triangle->vindices[j]<=model->numvertices);
+			glVertex3fv(&model->vertices[3 * triangle->vindices[j]]);
+		    }
 		}
             
 	    }
@@ -2057,15 +2136,15 @@ GLvoid glmFlipModelTextures(GLMmodel* model)
         if (material->image) {
             glmFlipTexture(material->image, material->width, material->height);                    	
             
-            glBindTexture(GL_TEXTURE_2D, model->materials[group->material].t_id[0]);
+            glBindTexture(_glmTextureTarget, model->materials[group->material].t_id[0]);
             //glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-	    //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, model->materials[nummaterials].width,
+	    //glTexImage2D(_glmTextureTarget, 0, GL_RGB, model->materials[nummaterials].width,
             //             model->materials[nummaterials].height, 0, GL_RGBA, GL_UNSIGNED_BYTE, model->materials[nummaterials]->image);
-            gluBuild2DMipmaps(GL_TEXTURE_2D, 3, model->materials[group->material].width, model->materials[group->material].height,
+            gluBuild2DMipmaps(_glmTextureTarget, 3, model->materials[group->material].width, model->materials[group->material].height,
                               GL_RGB, GL_UNSIGNED_BYTE,  model->materials[group->material].image);
-	    //glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); 
-	    //glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); 
+	    //glTexParameterf(_glmTextureTarget, GL_TEXTURE_MIN_FILTER, GL_LINEAR); 
+	    //glTexParameterf(_glmTextureTarget, GL_TEXTURE_MAG_FILTER, GL_LINEAR); 
         }
        
         group = group->next;
