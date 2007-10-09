@@ -52,7 +52,7 @@ int   show_text = 1;
 float view_rotate[16] = { 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 };
 float obj_pos[] = { 0.0, 0.0, 0.0 };
 char text[80];
-char *filename;
+char filename[1024];
 
 // Pointers to the windows and some of the controls we'll create *
 GLUI *glui;              //right Menu
@@ -75,18 +75,18 @@ GLUI_EditText *EditText;
 #define FILE_NAME            303
 
 //Prototypes
-void control_cb( int control );
-void myGlutKeyboard(unsigned char Key, int x, int y);
-void myGlutMenu( int value );
-void myGlutIdle( void );
-void myGlutMouse(int button, int button_state, int x, int y );
-void myGlutMotion(int x, int y );
-void myGlutReshape( int x, int y );
-void myGlutDisplay( void );
-void reset_objects(void);
-void draw_axis( float scale_obj );
-void draw_model(void);
-void check_file(int);
+static void control_cb( int control );
+static void myGlutKeyboard(unsigned char Key, int x, int y);
+static void myGlutMenu( int value );
+static void myGlutIdle( void );
+static void myGlutMouse(int button, int button_state, int x, int y );
+static void myGlutMotion(int x, int y );
+static void myGlutReshape( int x, int y );
+static void myGlutDisplay( void );
+static void reset_objects(void);
+static void draw_axis( float scale_obj );
+static void draw_model(void);
+static void check_file(int);
 
 
 //GLM Model Variable************************************************
@@ -96,10 +96,10 @@ GLMmodel* pmodel = NULL;
 //************************************** main() *******************
 int main(int argc, char* argv[])
 {
-    filename = (char*)malloc(sizeof(char) * sizeof(GLUI_String));
+    glutInit(&argc, argv);
 
     if (argc > 1) {		/* make sure at least 2 args, program and file */
-	strncpy(filename, argv[argc - 1],sizeof(GLUI_String));	/* get the last arg as the file always */
+	strncpy(filename, argv[argc - 1],sizeof(filename));	/* get the last arg as the file always */
 
     } else {			/* user only entered program name, help them */
 
@@ -119,9 +119,9 @@ int main(int argc, char* argv[])
   glutDisplayFunc( myGlutDisplay );
   GLUI_Master.set_glutReshapeFunc( myGlutReshape );  
   GLUI_Master.set_glutKeyboardFunc( myGlutKeyboard );
-  GLUI_Master.set_glutSpecialFunc( NULL );
-  GLUI_Master.set_glutMouseFunc( myGlutMouse );
-  glutMotionFunc( myGlutMotion );
+  //GLUI_Master.set_glutSpecialFunc( NULL );
+  //GLUI_Master.set_glutMouseFunc( myGlutMouse );
+  //glutMotionFunc( myGlutMotion );
 
   /****************************************/
   /*       Set up OpenGL lights           */
@@ -223,7 +223,7 @@ int main(int argc, char* argv[])
 
   // We register the idle callback with GLUI, *not* with GLUT 
 
-  GLUI_Master.set_glutIdleFunc( myGlutIdle );
+  //GLUI_Master.set_glutIdleFunc( myGlutIdle );
 
   // Regular GLUT main loop 
   
@@ -233,7 +233,7 @@ int main(int argc, char* argv[])
 
 ///************************************** control_cb() *******************
 // GLUI control callback                                                 
-void control_cb( int control )
+static void control_cb( int control )
 {
   int i;
   if( control == RESET_OBJECTS_ID)
@@ -286,7 +286,7 @@ void control_cb( int control )
 
 
 ///*************************************** myGlutKeyboard() **********
-void myGlutKeyboard(unsigned char Key, int x, int y)
+static void myGlutKeyboard(unsigned char Key, int x, int y)
 {
   switch(Key)
   {
@@ -301,14 +301,15 @@ void myGlutKeyboard(unsigned char Key, int x, int y)
 
 
 ///**************************************** myGlutMenu() ***********
-void myGlutMenu( int value )
+static void myGlutMenu( int value )
 {
   myGlutKeyboard( value, 0, 0 );
 }
 
 
+#if 0
 ///**************************************** myGlutIdle() ***********
-void myGlutIdle( void )
+static void myGlutIdle( void )
 {
   // According to the GLUT specification, the current window is 
   //     undefined during an idle callback.  So we need to explicitly change
@@ -322,22 +323,22 @@ void myGlutIdle( void )
   glutPostRedisplay();
 }
 
-
 ///**************************************** myGlutMouse() **********
-void myGlutMouse(int button, int button_state, int x, int y )
+static void myGlutMouse(int button, int button_state, int x, int y )
 {
 }
 
 
 ///**************************************** myGlutMotion() **********
-void myGlutMotion(int x, int y )
+static void myGlutMotion(int x, int y )
 {
   glutPostRedisplay(); 
 }
+#endif
 
 
 ///*************************************** myGlutReshape() *************
-void myGlutReshape( int x, int y )
+static void myGlutReshape( int x, int y )
 {
   int tx, ty, tw, th;
   GLUI_Master.get_viewport_area( &tx, &ty, &tw, &th );
@@ -351,7 +352,7 @@ void myGlutReshape( int x, int y )
 
 ///************************************************* draw_axis() **********
 /// Disables lighting, then draws RGB axis                                
-void draw_axis( float scale )
+static void draw_axis( float scale )
 {
   glPushMatrix();
   glDisable(GL_LIGHTING);
@@ -379,7 +380,7 @@ void draw_axis( float scale )
 
 
 ///************************************************* draw_model() **********
-void draw_model( void )
+static void draw_model( void )
 {
   
   mode = GLM_NONE; //reset mode
@@ -429,7 +430,7 @@ void draw_model( void )
 
 
 ///**************************************** myGlutDisplay() *****************
-void myGlutDisplay( void )
+static void myGlutDisplay( void )
 {
   //set graphics window to gray background
   glClearColor( 0.0, 0.0, 0.0, 1.0f );
@@ -480,7 +481,7 @@ void myGlutDisplay( void )
 
 
 //Check file and load if possible
-void check_file(int ID)
+static void check_file(int ID)
 {
     FILE *InTest;
     if((strlen(EditText->get_text())) > 0)

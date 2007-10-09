@@ -1182,7 +1182,7 @@ glmVertexNormals(GLMmodel* model, GLfloat angle, GLboolean keep_existing)
     GLuint  numnormals;
     GLfloat average[3];
     GLfloat dot, cos_angle;
-    GLuint  i, avg_index;
+    GLuint  i;
     
     DBG_(__glmWarning( "glmVertexNormals(): begin"));
     assert(model);
@@ -1235,6 +1235,8 @@ glmVertexNormals(GLMmodel* model, GLfloat angle, GLboolean keep_existing)
     
     /* calculate the average normal for each vertex */
     for (i = 1; i <= model->numvertices; i++) {
+        int avg_index;
+
 	/* calculate an average normal for this vertex by averaging the
 	   facet normal of every triangle this vertex is in */
         node = members[i];
@@ -1263,7 +1265,7 @@ glmVertexNormals(GLMmodel* model, GLfloat angle, GLboolean keep_existing)
         }
         
         /* set the normal of this vertex in each triangle it is in */
-	int avg_index = -1;
+	avg_index = -1;
         node = members[i];
         while (node) {
 	    int j;
@@ -1537,7 +1539,7 @@ glmDelete(GLMmodel* model)
  * filename - name of the file containing the Wavefront .OBJ format data.  
  */
 GLMmodel* 
-glmReadOBJ(char* filename)
+glmReadOBJ(const char* filename)
 {
     GLMmodel* model;
     FILE*   file;

@@ -26,8 +26,8 @@ CPPFLAGS="${GLUI_CFLAGS} ${CPPFLAGS}"
 
 AC_CHECK_HEADERS([GL/glui.h glui.h], [break])
 
-AC_CACHE_CHECK([for GLUI library], [ax_cv_check_glut_libglut],
-[ax_cv_check_glut_libglut="no"
+AC_CACHE_CHECK([for GLUI library], [ax_cv_check_glui_libglui],
+[ax_cv_check_glui_libglui="no"
 ax_save_LIBS="${LIBS}"
 LIBS=""
 ax_check_libs="-lglui32 -lglui"
