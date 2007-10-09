@@ -8,7 +8,16 @@
 #include <math.h>
 #include <stdio.h>
 #include <assert.h>
+# ifdef _WIN32
+#   include <windows.h>
+# endif
+#ifdef __APPLE__
+#include <OpenGL/gl.h>
+#include <GLUT/glut.h>
+#else
+#include <GL/gl.h>
 #include <GL/glut.h>
+#endif
 #include "gltb.h"
 
 

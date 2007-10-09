@@ -6,6 +6,24 @@ ACLOCAL_FLAGS="-I m4"
 srcdir=`dirname $0`
 test -z "$srcdir" && srcdir=.
 
+#
+# Apple's Developer Tools have a "libtool" that has nothing to do with
+# the GNU libtool; they call the latter "glibtool".  They also call
+# libtoolize "glibtoolize".
+#
+if [ -z "$LIBTOOL" ]; then
+    LIBTOOL=`which glibtool 2>/dev/null`
+    if [ ! -x "$LIBTOOL" ]; then
+        LIBTOOL=`which libtool`
+    fi
+fi
+if [ -z "$LIBTOOLIZE" ]; then
+    LIBTOOLIZE=`which glibtoolize 2>/dev/null`
+    if [ ! -x "$LIBTOOLIZE" ]; then
+        LIBTOOLIZE=`which libtoolize`
+    fi
+fi
+
 DIE=0
 
 if [ -n "$GNOME2_DIR" ]; then
@@ -51,7 +69,7 @@ fi
 }
 
 (grep "^AM_PROG_LIBTOOL" $srcdir/configure.in >/dev/null) && {
-  (libtool --version) < /dev/null > /dev/null 2>&1 || {
+  ($LIBTOOL --version) < /dev/null > /dev/null 2>&1 || {
     echo
     echo "**Error**: You must have \`libtool' installed."
     echo "You can get it from: ftp://ftp.gnu.org/pub/gnu/"
@@ -133,7 +151,7 @@ do
       if grep "^AM_PROG_LIBTOOL" configure.in >/dev/null; then
 	if test -z "$NO_LIBTOOLIZE" ; then 
 	  echo "Running libtoolize..."
-	  libtoolize --force --copy
+	  $LIBTOOLIZE --force --copy
 	fi
       fi
       echo "Running aclocal $aclocalinclude ..."

@@ -17,7 +17,7 @@ AC_REQUIRE([AC_PATH_XTRA])dnl
 
 if test "X$with_apple_opengl_framework" = "Xyes"; then
   GLUI_CFLAGS="${GLUT_CFLAGS}"
-  GLUI_LIBS="-framework GLUI -lobjc ${GL_LIBS}"
+  GLUI_LIBS="-framework GLUI ${GLUT_LIBS}"
 else
   GLUI_CFLAGS=${GLUT_CFLAGS}
   GLUI_LIBS=${GLUT_LIBS}

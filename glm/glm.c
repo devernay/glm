@@ -710,7 +710,7 @@ glmSecondPass(GLMmodel* model, FILE* file)
     GLfloat*    texcoords;          /* array of texture coordinates */
     GLMgroup* group;            /* current group pointer */
     GLuint  material;           /* current material */
-    GLuint  v, n, t;
+    unsigned int v, n, t;
     char        buf[128];
     
     /* set the pointer shortcuts */
@@ -790,21 +790,21 @@ glmSecondPass(GLMmodel* model, FILE* file)
                 /* can be one of %d, %d//%d, %d/%d, %d/%d/%d %d//%d */
                 if (strstr(buf, "//")) {
                     /* v//n */
-                    sscanf(buf, "%d//%d", &v, &n);
+                    sscanf(buf, "%u//%u", &v, &n);
                     T(numtriangles).vindices[0] = v;
                     T(numtriangles).tindices[0] = -1;
                     T(numtriangles).nindices[0] = n;
-                    fscanf(file, "%d//%d", &v, &n);
+                    fscanf(file, "%u//%u", &v, &n);
                     T(numtriangles).vindices[1] = v;
                     T(numtriangles).tindices[1] = -1;
                     T(numtriangles).nindices[1] = n;
-                    fscanf(file, "%d//%d", &v, &n);
+                    fscanf(file, "%u//%u", &v, &n);
                     T(numtriangles).vindices[2] = v;
 		    T(numtriangles).tindices[2] = -1;
                     T(numtriangles).nindices[2] = n;
                     group->triangles[group->numtriangles++] = numtriangles;
                     numtriangles++;
-                    while(fscanf(file, "%d//%d", &v, &n) > 0) {
+                    while(fscanf(file, "%u//%u", &v, &n) > 0) {
 #ifdef MATERIAL_BY_FACE
                         T(numtriangles).material = material;
 #endif
@@ -820,22 +820,22 @@ glmSecondPass(GLMmodel* model, FILE* file)
                         group->triangles[group->numtriangles++] = numtriangles;
                         numtriangles++;
                     }
-                } else if (sscanf(buf, "%d/%d/%d", &v, &t, &n) == 3) {
+                } else if (sscanf(buf, "%u/%u/%u", &v, &t, &n) == 3) {
                     /* v/t/n */
                     T(numtriangles).vindices[0] = v;
                     T(numtriangles).tindices[0] = t;
                     T(numtriangles).nindices[0] = n;
-                    fscanf(file, "%d/%d/%d", &v, &t, &n);
+                    fscanf(file, "%u/%u/%u", &v, &t, &n);
                     T(numtriangles).vindices[1] = v;
                     T(numtriangles).tindices[1] = t;
                     T(numtriangles).nindices[1] = n;
-                    fscanf(file, "%d/%d/%d", &v, &t, &n);
+                    fscanf(file, "%u/%u/%u", &v, &t, &n);
                     T(numtriangles).vindices[2] = v;
                     T(numtriangles).tindices[2] = t;
                     T(numtriangles).nindices[2] = n;
                     group->triangles[group->numtriangles++] = numtriangles;
                     numtriangles++;
-                    while(fscanf(file, "%d/%d/%d", &v, &t, &n) > 0) {
+                    while(fscanf(file, "%u/%u/%u", &v, &t, &n) > 0) {
 #ifdef MATERIAL_BY_FACE
                         T(numtriangles).material = material;
 #endif
@@ -851,22 +851,22 @@ glmSecondPass(GLMmodel* model, FILE* file)
                         group->triangles[group->numtriangles++] = numtriangles;
                         numtriangles++;
                     }
-                } else if (sscanf(buf, "%d/%d", &v, &t) == 2) {
+                } else if (sscanf(buf, "%u/%u", &v, &t) == 2) {
                     /* v/t */
                     T(numtriangles).vindices[0] = v;
                     T(numtriangles).tindices[0] = t;
 		    T(numtriangles).nindices[0] = -1;
-		    fscanf(file, "%d/%d", &v, &t);
+		    fscanf(file, "%u/%u", &v, &t);
                     T(numtriangles).vindices[1] = v;
                     T(numtriangles).tindices[1] = t;
 		    T(numtriangles).nindices[1] = -1;
-                    fscanf(file, "%d/%d", &v, &t);
+                    fscanf(file, "%u/%u", &v, &t);
                     T(numtriangles).vindices[2] = v;
                     T(numtriangles).tindices[2] = t;
 		    T(numtriangles).nindices[2] = -1;
                     group->triangles[group->numtriangles++] = numtriangles;
                     numtriangles++;
-                    while(fscanf(file, "%d/%d", &v, &t) > 0) {
+                    while(fscanf(file, "%u/%u", &v, &t) > 0) {
 #ifdef MATERIAL_BY_FACE
                         T(numtriangles).material = material;
 #endif
@@ -884,21 +884,21 @@ glmSecondPass(GLMmodel* model, FILE* file)
                     }
                 } else {
                     /* v */
-                    sscanf(buf, "%d", &v);
+                    sscanf(buf, "%u", &v);
                     T(numtriangles).vindices[0] = v;
                     T(numtriangles).tindices[0] = -1;
 		    T(numtriangles).nindices[0] = -1;
-		    fscanf(file, "%d", &v);
+		    fscanf(file, "%u", &v);
                     T(numtriangles).vindices[1] = v;
                     T(numtriangles).tindices[1] = -1;
 		    T(numtriangles).nindices[1] = -1;
-                    fscanf(file, "%d", &v);
+                    fscanf(file, "%u", &v);
                     T(numtriangles).vindices[2] = v;
                     T(numtriangles).tindices[2] = -1;
 		    T(numtriangles).nindices[2] = -1;
                     group->triangles[group->numtriangles++] = numtriangles;
                     numtriangles++;
-                    while(fscanf(file, "%d", &v) > 0) {
+                    while(fscanf(file, "%u", &v) > 0) {
 #ifdef MATERIAL_BY_FACE
                         T(numtriangles).material = material;
 #endif
@@ -1721,7 +1721,7 @@ glmWriteOBJ(GLMmodel* model, char* filename, GLuint mode)
     /* spit out the smooth/flat normals */
     if (mode & GLM_SMOOTH) {
         fprintf(file, "\n");
-        fprintf(file, "# %d normals\n", model->numnormals);
+        fprintf(file, "# %u normals\n", (unsigned int)model->numnormals);
         for (i = 1; i <= model->numnormals; i++) {
             fprintf(file, "vn %f %f %f\n", 
 		    model->normals[3 * i + 0],

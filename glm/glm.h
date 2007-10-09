@@ -14,8 +14,13 @@
  */
 
 
+#ifdef __APPLE__
+#include <OpenGL/gl.h>
+#include <OpenGL/glu.h>
+#else
 #include <GL/gl.h>
 #include <GL/glu.h>
+#endif
 
 #define GLM_MAX_SHININESS 100.0 /* for Poser */
 #define GLM_MAX_TEXTURE_SIZE 0 /* must be a power of 2 (i.e. 1024).
