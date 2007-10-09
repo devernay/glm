@@ -10,21 +10,21 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <GL/glut.h>
-#include "glm.h"
-
-#include "config.h"
-
-#if defined(HAVE_GL_GLUI_H) || defined(HAVE_GLUI_H)
-
 # ifdef _WIN32
 #   include <windows.h>
 # endif
-# ifdef HAVE_GL_GLUI_H
-#   include <GL/glui.h>
-# else
-#   include <glui.h>
-# endif
+#ifdef __APPLE__
+#include <OpenGL/gl.h>
+#include <GLUT/glut.h>
+#include <GLUI/glui.h>
+#else
+#include <GL/gl.h>
+#include <GL/glut.h>
+#include <GL/glui.h>
+#endif
+#include "glm.h"
+
+#include "config.h"
 
 float xy_aspect;
 int   last_x,
@@ -502,11 +502,3 @@ static void check_file(int ID)
         printf("\n%s does not exist.\n", EditText->get_text());
     }
 }
-
-#else
-int main(int, char**)
-{
-    fprintf(stderr,"GLUI Library not available\n");
-    exit(1);
-}
-#endif /* defined(HAVE_GL_GLUI_H) || defined(HAVE_GLUI_H) */

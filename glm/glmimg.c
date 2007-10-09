@@ -6,8 +6,16 @@
 #include <string.h>
 #include <assert.h>
 #include <math.h>
+# ifdef _WIN32
+#   include <windows.h>
+# endif
+#ifdef __APPLE__
+#include <OpenGL/gl.h>
+#include <OpenGL/glext.h>
+#else
 #include <GL/gl.h>
 #include <GL/glext.h>
+#endif
 #include "glm.h"
 /*
 #define DEBUG

@@ -1,6 +1,14 @@
 AM_CFLAGS = $(WARN_CFLAGS)
 
-noinst_PROGRAMS = smooth glutobj game_glutobj gluiobj
+if HAVE_GLUT
+GLUTPROGS = smooth glutobj game_glutobj
+endif
+
+if HAVE_GLUI
+GLUIPROGS = gluiobj
+endif
+
+noinst_PROGRAMS = $(GLUTPROGS) $(GLUIPROGS)
 
 smooth_CFLAGS = -I$(top_srcdir)/glm $(GLUT_CFLAGS)
 smooth_SOURCES = dirent32.h gltb.c gltb.h gltx.c gltx.h smooth.c trackball.c trackball.h

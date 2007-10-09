@@ -5,6 +5,7 @@ AM_INIT_AUTOMAKE
 AM_CONFIG_HEADER(config.h)
 
 AC_PROG_CC
+AM_PROG_CC_C_O
 AC_PROG_INSTALL
 AC_C_INLINE
 GNOME_COMPILE_WARNINGS(yes)
@@ -16,16 +17,19 @@ AM_PROG_LIBTOOL
 
 AC_CHECK_FUNCS(strdup)
 
-if test $target_os = cygwin; then
-  AC_MSG_NOTICE([using Cygwin OpenGL])
-  GL_CFLAGS=
-  GL_LIBS='-lglu32 -lopengl32'
-  GLUT_CFLAGS='$(GL_CFLAGS)'
-  GLUT_LIBS=-lglut32
-else
+dnl if test $target_os = cygwin; then
+dnl   AC_MSG_NOTICE([using Cygwin OpenGL])
+dnl   GL_CFLAGS=
+dnl   GL_LIBS='-lglu32 -lopengl32'
+dnl   GLUT_CFLAGS='$(GL_CFLAGS)'
+dnl   GLUT_LIBS=-lglut32
+dnl else
   AX_CHECK_GLUT
-fi
+dnl fi
 AX_CHECK_GLUI
+AM_CONDITIONAL(HAVE_GLUT, test "x$GLUT_LIBS" != x)
+AM_CONDITIONAL(HAVE_GLUI, test "x$GLUI_LIBS" != x)
+
 
 dnl Test for libjpeg
 AC_CHECK_LIB(jpeg, jpeg_destroy_decompress,

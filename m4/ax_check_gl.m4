@@ -1,104 +1,91 @@
 dnl @synopsis AX_CHECK_GL
 dnl
-dnl Check for OpenGL/Mesa. Succeeds if both GL and GLU are found.  If it
-dnl succeeds, the required linker flags are included in the output variable
-dnl "GL_LIBS".  If the headers "GL/gl.h" and "GL/glu.h" are found, the symbols
-dnl HAVE_GL_GL_H and HAVE_GL_GLU_H are defined, respectively.  Otherwise, if
-dnl "OpenGL/gl.h" and "OpenGL/glu.h" are found, HAVE_OPENGL_GL_H and
-dnl HAVE_OPENGL_GLU_H are defined.  If neither OpenGL nor Mesa is found, "no_gl"
-dnl is set to "yes".
+dnl Check for an OpenGL implementation.  If GL is found, the required compiler
+dnl and linker flags are included in the output variables "GL_CFLAGS" and
+dnl "GL_LIBS", respectively.  This macro adds the configure option
+dnl "--with-apple-opengl-framework", which users can use to indicate that
+dnl Apple's OpenGL framework should be used on Mac OS X.  If Apple's OpenGL
+dnl framework is used, the symbol "HAVE_APPLE_OPENGL_FRAMEWORK" is defined.  If
+dnl no GL implementation is found, "no_gl" is set to "yes".
 dnl
-dnl @copyright (C) 2003 Braden McDaniel
-dnl @license GNU GPL
-dnl @version $Id$
-dnl @author Braden McDaniel <braden@endoframe.com>
+dnl @version 1.8
+dnl @author Braden McDaniel <braden@xxxxxxxxxxxxx>
 dnl
 AC_DEFUN([AX_CHECK_GL],
 [AC_REQUIRE([AC_PATH_X])dnl
 AC_REQUIRE([ACX_PTHREAD])dnl
-GL_CFLAGS="${PTHREAD_CFLAGS}"
-GL_LIBS="${PTHREAD_LIBS} -lm"
 
 #
-# Use x_includes and x_libraries if they have been set (presumably by
-# AC_PATH_X).
+# There isn't a reliable way to know we should use the Apple OpenGL framework
+# without a configure option.  A Mac OS X user may have installed an
+# alternative GL implementation (e.g., Mesa), which may or may not depend on X.
 #
-if test "X$no_x" != "Xyes"; then
-  if test -n "$x_includes"; then
-    GL_CFLAGS="-I${x_includes} ${GL_CFLAGS}"
-  fi
-  if test -n "$x_libraries"; then
-    GL_LIBS="-L${x_libraries} ${GL_LIBS}"
-  fi
-fi
-
-AC_LANG_PUSH(C)
-
-ax_save_CPPFLAGS="${CPPFLAGS}"
-CPPFLAGS="${GL_CFLAGS} ${CPPFLAGS}"
-
-AC_CHECK_HEADERS([GL/gl.h OpenGL/gl.h], [break])
-
-AC_CACHE_CHECK([for OpenGL library], [ax_cv_check_gl_libgl],
-[ax_cv_check_gl_libgl="no"
-ax_save_LIBS="${LIBS}"
-LIBS=""
-ax_check_libs="-lopengl32 -lGL"
-for ax_lib in ${ax_check_libs}; do
- LIBS="${ax_lib} ${GL_LIBS} ${ax_save_LIBS}"
-  AC_TRY_LINK([
-# ifdef _WIN32
-#   include <windows.h>
-# endif
-# ifdef HAVE_OPENGL_GL_H
-#   include <OpenGL/gl.h>
-# else
-#   include <GL/gl.h>
-# endif
-],
-  [glBegin(0)],
-  [ax_cv_check_gl_libgl="${ax_lib}" break])
-done
-LIBS=${ax_save_LIBS}])
-
-if test "X${ax_cv_check_gl_libgl}" = "Xno"; then
-  no_gl="yes"
+AC_ARG_WITH([apple-opengl-framework],
+            [AC_HELP_STRING([--with-apple-opengl-framework],
+                            [use Apple OpenGL framework (Mac OS X only)])])
+if test "X$with_apple_opengl_framework" = "Xyes"; then
+  AC_DEFINE([HAVE_APPLE_OPENGL_FRAMEWORK], [1],
+            [Use the Apple OpenGL framework.])
+  GL_LIBS="-framework OpenGL"
 else
-  GL_LIBS="${ax_cv_check_gl_libgl} ${GL_LIBS}"
+  AC_LANG_PUSH(C)
 
-  AC_CHECK_HEADERS([GL/glu.h OpenGL/glu.h], [break])
+  AX_LANG_COMPILER_MS
+  if test X$ax_compiler_ms = Xno; then
+    GL_CFLAGS="${PTHREAD_CFLAGS}"
+    GL_LIBS="${PTHREAD_LIBS} -lm"
+  fi
 
-  AC_CACHE_CHECK([for OpenGL Utility library], [ax_cv_check_gl_libglu],
-  [ax_cv_check_gl_libglu="no"
+  #
+  # Use x_includes and x_libraries if they have been set (presumably by
+  # AC_PATH_X).
+  #
+  if test "X$no_x" != "Xyes"; then
+    if test -n "$x_includes"; then
+      GL_CFLAGS="-I${x_includes} ${GL_CFLAGS}"
+    fi
+    if test -n "$x_libraries"; then
+      GL_LIBS="-L${x_libraries} -lX11 ${GL_LIBS}"
+    fi
+  fi
+
+  AC_CHECK_HEADERS([windows.h])
+
+  AC_CACHE_CHECK([for OpenGL library], [ax_cv_check_gl_libgl],
+  [ax_cv_check_gl_libgl="no"
+  ax_save_CPPFLAGS="${CPPFLAGS}"
+  CPPFLAGS="${GL_CFLAGS} ${CPPFLAGS}"
   ax_save_LIBS="${LIBS}"
   LIBS=""
-  ax_check_libs="-lglu32 -lGLU"
+  ax_check_libs="-lopengl32 -lGL"
   for ax_lib in ${ax_check_libs}; do
-    LIBS="${ax_lib} ${GL_LIBS} ${ax_save_LIBS}"
-    AC_LANG_PUSH([C++])
-    AC_TRY_LINK([
-# ifdef _WIN32
+    if test X$ax_compiler_ms = Xyes; then
+      ax_try_lib=`echo $ax_lib | sed -e 's/^-l//' -e 's/$/.lib/'`
+    else
+      ax_try_lib="${ax_lib}"
+    fi
+    LIBS="${ax_try_lib} ${GL_LIBS} ${ax_save_LIBS}"
+    AC_LINK_IFELSE(
+    [AC_LANG_PROGRAM([[
+# if HAVE_WINDOWS_H && defined(_WIN32)
 #   include <windows.h>
 # endif
-# ifdef HAVE_OPENGL_GLU_H
-#   include <OpenGL/glu.h>
-# else
-#   include <GL/glu.h>
-# endif
-],
-    [gluBeginCurve(0)],
-    [ax_cv_check_gl_libglu="${ax_lib}" break])
-    AC_LANG_POP([C++])
+# include <GL/gl.h>]],
+                     [[glBegin(0)]])],
+    [ax_cv_check_gl_libgl="${ax_try_lib}"; break])
   done
-  LIBS=${ax_save_LIBS}])
-  if test "X${ax_cv_check_gl_libglu}" = "Xno"; then
+  LIBS=${ax_save_LIBS}
+  CPPFLAGS=${ax_save_CPPFLAGS}])
+
+  if test "X${ax_cv_check_gl_libgl}" = "Xno"; then
     no_gl="yes"
+    GL_CFLAGS=""
+    GL_LIBS=""
   else
-    GL_LIBS="${ax_cv_check_gl_libglu} ${GL_LIBS}"
+    GL_LIBS="${ax_cv_check_gl_libgl} ${GL_LIBS}"
   fi
+  AC_LANG_POP(C)
 fi
-CPPFLAGS="${ax_save_CPPFLAGS}"
-AC_LANG_POP(C)
 
 AC_SUBST([GL_CFLAGS])
 AC_SUBST([GL_LIBS])

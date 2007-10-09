@@ -1,5 +1,13 @@
-#include <GL/glut.h>
+# ifdef _WIN32
+#   include <windows.h>
+# endif
+#ifdef __APPLE__
+#include <OpenGL/gl.h>
+#include <GLUT/glut.h>
+#else
 #include <GL/gl.h>
+#include <GL/glut.h>
+#endif
 #include <stdlib.h>
 #include <memory.h>
 #include <stdio.h>
