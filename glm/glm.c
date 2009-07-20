@@ -1305,7 +1305,7 @@ glmVertexNormals(GLMmodel* model, GLfloat angle, GLboolean keep_existing)
 		int discard = 1;
 
 		while (model->numnormals < numnormals) {
-		    __glmWarning( "glmVertexNormals(): realloc %d+100\n", model->numnormals+100);
+                    DBG_(__glmWarning( "glmVertexNormals(): realloc %d+100\n", model->numnormals+100));
 		    /* allocate 100 more normals */
 		    model->numnormals += 100;
 		    model->normals = (GLfloat*)realloc(model->normals, sizeof(GLfloat)* 3 * (model->numnormals+1));
@@ -1899,6 +1899,9 @@ glmDraw(GLMmodel* model, GLuint mode)
     if (mode & GLM_TEXTURE) {
         glEnable(_glmTextureTarget);
         glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+    }
+    else {
+        glDisable(_glmTextureTarget);
     }
 #ifdef GLM_2_SIDED
     if(mode & GLM_2_SIDED)
