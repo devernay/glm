@@ -1,3 +1,9 @@
+Changes since version 0.3.1:
+- glm/glmimg.c: issue a fatal error if the max texture size is <= 0
+- glm/glm.c: disable texturing on non-textured objects
+- examples/glutobj.c examples/game_glutobj.c: fix wrong cast
+- fix various warnings by cppcheck & clang's scan-build
+
 Changes since version 0.2:
 
 - glmVertexNormals(): have an option to add normals only where undefined

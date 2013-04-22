@@ -151,6 +151,7 @@ glmReadPPM(const char* filename, GLboolean alpha, int* width, int* height, int *
     fgets(head, 70, fp);
     if (strncmp(head, "P6", 2)) {
 	DBG_(__glmWarning("glmReadPPM() failed: %s: Not a raw PPM file", filename));
+	fclose(fp);
         return NULL;
     }
     

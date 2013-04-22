@@ -427,11 +427,14 @@ menu(int item)
 		    break;
 	    }
 	}
-	if (!direntp)
+	if (!direntp) {
+	    (void)closedir(dirp);
 	    return;
+	}
 	name = (char*)malloc(strlen(direntp->d_name) + strlen(DATA_DIR) + 1);
 	strcpy(name, DATA_DIR);
 	strcat(name, direntp->d_name);
+	(void)closedir(dirp);
 	model = glmReadOBJ(name);
 	scale = glmUnitize(model);
 	glmVertexNormals(model, smoothing_angle, GL_TRUE);

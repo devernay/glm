@@ -295,6 +295,7 @@ glmReadMTL(GLMmodel* model, char* name)
     FILE* file;
     char* dir;
     char* filename;
+    char* tex_filename;
     char* t_filename;
     char    buf[128];
     GLuint nummaterials, i;
@@ -309,7 +310,6 @@ glmReadMTL(GLMmodel* model, char* name)
         __glmFatalError( "glmReadMTL() failed: can't open material file \"%s\".",
 			 filename);
     }
-    free(filename);
     
     /* count the number of materials in the file */
     nummaterials = 1;
@@ -467,10 +467,10 @@ glmReadMTL(GLMmodel* model, char* name)
 	    break;
         case 'm':
             /* texture map */
-            filename = malloc(FILENAME_MAX);
-            fgets(filename, FILENAME_MAX, file);
-            t_filename = __glmStrStrip((char*)filename);
-            free(filename);
+            tex_filename = malloc(FILENAME_MAX);
+            fgets(tex_filename, FILENAME_MAX, file);
+            t_filename = __glmStrStrip(tex_filename);
+            free(tex_filename);
             if(strncmp(buf, "map_Kd", 6) == 0) {
                 model->materials[nummaterials].map_diffuse = glmFindOrAddTexture(model, t_filename);
                 free(t_filename);
@@ -493,6 +493,7 @@ glmReadMTL(GLMmodel* model, char* name)
     }
     free(dir);
     fclose(file);
+    free(filename);
 }
 
 /* glmWriteMTL: write a wavefront material library file
@@ -546,6 +547,7 @@ glmWriteMTL(GLMmodel* model, char* modelpath, char* mtllibname)
         fprintf(file, "Ns %f\n", material->shininess / 128.0 * GLM_MAX_SHININESS);
         fprintf(file, "\n");
     }
+    fclose(file);
 }
 
 
@@ -1275,12 +1277,11 @@ glmVertexNormals(GLMmodel* model, GLfloat angle, GLboolean keep_existing)
 		for (j = 0; j<3; j++) {
 		    assert(T(node->index).vindices[j] <= model->numvertices);
 		    if (T(node->index).vindices[j] == i) {
-			if(T(node->index).nindices[j] > numnormals);
 			assert(T(node->index).nindices[j] == -1 || T(node->index).nindices[j] <= model->numnormals);
 			if (!keep_existing || T(node->index).nindices[j] == -1) {
 			    if (avg_index == -1) {
 				while (model->numnormals < numnormals) {
-				    DBG_(__glmWarning( "glmVertexNormals(): realloc %d+100\n", model->numnormals+100));
+				    DBG_(__glmWarning( "glmVertexNormals(): realloc %d+1000\n", model->numnormals+1000));
 				    /* allocate 1000 more normals */
 				    model->numnormals += 1000;
 				    model->normals = (GLfloat*)realloc(model->normals, sizeof(GLfloat)* 3 * (model->numnormals+1));

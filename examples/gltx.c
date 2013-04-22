@@ -82,6 +82,7 @@ static rawImageRec *RawImageOpen(char *fileName)
 	return NULL;
     }
     if ((raw->file = fopen(fileName, "rb")) == NULL) {
+        free(raw);
 	return NULL;
     }
 
@@ -227,6 +228,7 @@ gltxReadRGB(char *filename)
   image = (GLTXimage*)malloc(sizeof(GLTXimage));
   if (image == NULL) {
     fprintf(stderr, "gltxReadRGB() failed: insufficient memory.\n");
+    free(raw);
     return NULL;
   }
 

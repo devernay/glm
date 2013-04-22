@@ -141,7 +141,7 @@ int main(int argc, char **argv)
     int i;
 
     if (argc > 1) {		/* make sure at least 2 args, program and file */
-	strcpy(filename, argv[argc - 1]);	/* get the last arg as the file always */
+      strncpy(filename, argv[argc - 1], sizeof(filename));	/* get the last arg as the file always */
 
 	for (i = 0; i < argc; i++) {	/* check for startup params */
 	    if (strstr(argv[i], "-s"))
@@ -545,11 +545,9 @@ void Keyboard(unsigned char key, int x, int y)
 	exit(0);
 	break;
     default:{
-	    fflush(stdin);
 	    break;
 	}			/* flush all other input                                 */
     }
-    fflush(stdin);		/* flush input */
     glutPostRedisplay();	/* redisplay afterword */
 }
 
