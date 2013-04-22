@@ -1,12 +1,12 @@
-dnl @synopsis AX_CHECK_GLUT
+dnl @synopsis AX_CHECK_GLUI
 dnl
-dnl Check for GLUT.  If GLUT is found, the required compiler and linker flags
+dnl Check for GLUI.  If GLUI is found, the required compiler and linker flags
 dnl are included in the output variables "GLUT_CFLAGS" and "GLUT_LIBS",
 dnl respectively. This macro adds the configure option
 dnl "--with-apple-opengl-framework", which users can use to indicate that
 dnl Apple's OpenGL framework should be used on Mac OS X. If Apple's OpenGL
 dnl framework is used, the symbol "HAVE_APPLE_OPENGL_FRAMEWORK" is defined.  If
-dnl GLUT is not found, "no_glut" is set to "yes".
+dnl GLUI is not found, "no_glui" is set to "yes".
 dnl
 dnl @version 1.8
 dnl @author Braden McDaniel <braden@xxxxxxxxxxxxx>

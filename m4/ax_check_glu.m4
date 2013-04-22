@@ -1,16 +1,19 @@
 dnl @synopsis AX_CHECK_GLU
 dnl
-dnl Check for GLU.  If GLU is found, the required preprocessor and linker flags
-dnl are included in the output variables "GLU_CFLAGS" and "GLU_LIBS",
-dnl respectively.  This macro adds the configure option
-dnl "--with-apple-opengl-framework", which users can use to indicate that
-dnl Apple's OpenGL framework should be used on Mac OS X.  If Apple's OpenGL
-dnl framework is used, the symbol "HAVE_APPLE_OPENGL_FRAMEWORK" is defined.  If
-dnl no GLU implementation is found, "no_glu" is set to "yes".
+dnl Check for GLU. If GLU is found, the required preprocessor and
+dnl linker flags are included in the output variables "GLU_CFLAGS" and
+dnl "GLU_LIBS", respectively. This macro adds the configure option
+dnl "--with-apple-opengl-framework", which users can use to indicate
+dnl that Apple's OpenGL framework should be used on Mac OS X. If
+dnl Apple's OpenGL framework is used, the symbol
+dnl "HAVE_APPLE_OPENGL_FRAMEWORK" is defined. If no GLU implementation
+dnl is found, "no_glu" is set to "yes".
 dnl
-dnl @version 1.2
-dnl @author Braden McDaniel <braden@xxxxxxxxxxxxx>
-dnl
+dnl @category InstalledPackages
+dnl @author Braden McDaniel <braden@endoframe.com>
+dnl @version 2004-11-15
+dnl @license AllPermissive
+
 AC_DEFUN([AX_CHECK_GLU],
 [AC_REQUIRE([AX_CHECK_GL])dnl
 AC_REQUIRE([AC_PROG_CXX])dnl

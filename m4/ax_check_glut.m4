@@ -1,16 +1,19 @@
 dnl @synopsis AX_CHECK_GLUT
 dnl
-dnl Check for GLUT.  If GLUT is found, the required compiler and linker flags
-dnl are included in the output variables "GLUT_CFLAGS" and "GLUT_LIBS",
-dnl respectively. This macro adds the configure option
-dnl "--with-apple-opengl-framework", which users can use to indicate that
-dnl Apple's OpenGL framework should be used on Mac OS X. If Apple's OpenGL
-dnl framework is used, the symbol "HAVE_APPLE_OPENGL_FRAMEWORK" is defined.  If
-dnl GLUT is not found, "no_glut" is set to "yes".
+dnl Check for GLUT. If GLUT is found, the required compiler and linker
+dnl flags are included in the output variables "GLUT_CFLAGS" and
+dnl "GLUT_LIBS", respectively. This macro adds the configure option
+dnl "--with-apple-opengl-framework", which users can use to indicate
+dnl that Apple's OpenGL framework should be used on Mac OS X. If
+dnl Apple's OpenGL framework is used, the symbol
+dnl "HAVE_APPLE_OPENGL_FRAMEWORK" is defined. If GLUT is not found,
+dnl "no_glut" is set to "yes".
 dnl
-dnl @version 1.8
-dnl @author Braden McDaniel <braden@xxxxxxxxxxxxx>
-dnl
+dnl @category InstalledPackages
+dnl @author Braden McDaniel <braden@endoframe.com>
+dnl @version 2004-11-15
+dnl @license AllPermissive
+
 AC_DEFUN([AX_CHECK_GLUT],
 [AC_REQUIRE([AX_CHECK_GLU])dnl
 AC_REQUIRE([AC_PATH_XTRA])dnl
@@ -73,4 +76,3 @@ fi
 AC_SUBST([GLUT_CFLAGS])
 AC_SUBST([GLUT_LIBS])
 ])dnl
-
