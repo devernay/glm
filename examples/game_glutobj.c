@@ -70,7 +70,7 @@ int centerZ = -3;
 int smooth_hint = 0;
 
 #endif				/*  */
-int Help_Font = (int) GLUT_BITMAP_8_BY_13;
+void *Help_Font = GLUT_BITMAP_8_BY_13;
 int linestart = 10;		/* start point on y axis for text lines */
 int linespace = 20;		/* spac betwwen text lines */
 
@@ -694,62 +694,62 @@ void DrawAxis(float scale)
     glLoadIdentity();
     linestart = 10;
     HelpRenderBitmapString(30, linestart +=
-			   linespace, (void *) Help_Font, "Help Menu");
+			   linespace, Help_Font, "Help Menu");
     HelpRenderBitmapString(30, linestart +=
-			   linespace, (void *) Help_Font, "---------");
+			   linespace, Help_Font, "---------");
     HelpRenderBitmapString(30, linestart +=
-			   linespace, (void *) Help_Font,
+			   linespace, Help_Font,
 			   "H/h = Toggle Help Menu");
     HelpRenderBitmapString(30, linestart +=
-			   linespace, (void *) Help_Font,
+			   linespace, Help_Font,
 			   "F2  = Toggle Full Screen");
     HelpRenderBitmapString(30, linestart +=
-			   linespace, (void *) Help_Font,
+			   linespace, Help_Font,
 			   "Esc = Exits Program");
     HelpRenderBitmapString(30, linestart +=
-			   linespace, (void *) Help_Font,
+			   linespace, Help_Font,
 			   "R/r = Reset Position");
     HelpRenderBitmapString(30, linestart +=
-			   linespace, (void *) Help_Font,
+			   linespace, Help_Font,
 			   "C/c = Toggle Axis");
     HelpRenderBitmapString(30, linestart +=
-			   linespace, (void *) Help_Font,
+			   linespace, Help_Font,
 			   "W/w = Toggle Wireframe");
     HelpRenderBitmapString(30, linestart +=
-			   linespace, (void *) Help_Font,
+			   linespace, Help_Font,
 			   "D/d = Toggle Double Sided Polygons");
     HelpRenderBitmapString(30, linestart +=
-			   linespace, (void *) Help_Font,
+			   linespace, Help_Font,
 			   "S/s = Toggle Smooth Shading");
     HelpRenderBitmapString(30, linestart +=
-			   linespace, (void *) Help_Font,
+			   linespace, Help_Font,
 			   "M/m = Toggle Materials");
     HelpRenderBitmapString(30, linestart +=
-			   linespace, (void *) Help_Font,
+			   linespace, Help_Font,
 			   "T/t = Toggle Textures");
 
     /* HelpRenderBitmapString(30,linestart+=linespace,(void *)Help_Font, "L/l = Toggle Line Smoothing");    */
 #ifdef AVL
     HelpRenderBitmapString(30, linestart +=
-			   linespace, (void *) Help_Font,
+			   linespace, Help_Font,
 			   "F/f = Flip Textures");
 
 #endif				/*  */
     if (stereo) {
 	HelpRenderBitmapString(30, linestart +=
-			       linespace, (void *) Help_Font,
+			       linespace, Help_Font,
 			       "Stereo Variables");
 	HelpRenderBitmapString(30, linestart +=
-			       linespace, (void *) Help_Font,
+			       linespace, Help_Font,
 			       "----------------");
 	HelpRenderBitmapString(30, linestart +=
-			       linespace, (void *) Help_Font,
+			       linespace, Help_Font,
 			       "</, = Decrease Eye Separation");
 	HelpRenderBitmapString(30, linestart +=
-			       linespace, (void *) Help_Font,
+			       linespace, Help_Font,
 			       ">/. = Increase Eye Separation");
 	HelpRenderBitmapString(30, linestart +=
-			       linespace, (void *) Help_Font,
+			       linespace, Help_Font,
 			       "+/- = Increase/Decrease Focus Distance");
     }
     glPopMatrix();
