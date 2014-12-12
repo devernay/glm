@@ -11,7 +11,7 @@ Changes since version 0.2:
   (suggested by Nuno Guerreiro <nuno.guerreiro@lesium.org>)
 
 
-Changes since Nate Robbins' glm.c:
+Changes since Nate Robins' glm.c:
 
 - warning/error functions in glm_util.c
 - added glmStrStrip function to handle filenames with spaces
