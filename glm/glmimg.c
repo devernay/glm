@@ -282,6 +282,9 @@ glmLoadTexture(const char *filename, GLboolean alpha, GLboolean repeat, GLboolea
     case GL_LUMINANCE:
 	pixelsize = 1;
 	break;
+    case GL_LUMINANCE_ALPHA:
+	pixelsize = 2;
+	break;
     case GL_RGB:
     case GL_BGR:
 	pixelsize = 3;
