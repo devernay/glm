@@ -43,7 +43,7 @@ sim_ac_simage_extrapath=
 
 AC_ARG_WITH(
   simage,
-  AC_HELP_STRING([--with-simage=DIR],
+  AS_HELP_STRING([--with-simage=DIR],
                  [use simage for loading texture files]),
   [case $withval in
    yes) sim_ac_simage_desired=true ;;
@@ -53,7 +53,7 @@ AC_ARG_WITH(
   esac],
   [])
 
-if [ $sim_ac_simage_desired = true ]; then
+if $sim_ac_simage_desired; then
   sim_ac_path=$PATH
   test -z "$sim_ac_simage_extrapath" ||
     sim_ac_path=$sim_ac_simage_extrapath/bin:$sim_ac_path
@@ -62,10 +62,13 @@ if [ $sim_ac_simage_desired = true ]; then
 
   AC_PATH_PROG(sim_ac_simage_configcmd, simage-config, false, $sim_ac_path)
 
-  if $sim_ac_simage_configcmd; then
+  if test "X$sim_ac_simage_configcmd" = "Xfalse"; then :; else
     test -n "$CONFIG" &&
       $sim_ac_simage_configcmd --alternate=$CONFIG >/dev/null 2>/dev/null &&
       sim_ac_simage_configcmd="$sim_ac_simage_configcmd --alternate=$CONFIG"
+  fi
+
+  if $sim_ac_simage_configcmd; then
     sim_ac_simage_cppflags=`$sim_ac_simage_configcmd --cppflags`
     sim_ac_simage_ldflags=`$sim_ac_simage_configcmd --ldflags`
     sim_ac_simage_libs=`$sim_ac_simage_configcmd --libs`
@@ -78,11 +81,12 @@ if [ $sim_ac_simage_desired = true ]; then
       CPPFLAGS="$CPPFLAGS $sim_ac_simage_cppflags"
       LDFLAGS="$LDFLAGS $sim_ac_simage_ldflags"
       LIBS="$sim_ac_simage_libs $LIBS"
-      AC_TRY_LINK(
-        [#include <simage.h>],
-        [(void)simage_read_image(0L, 0L, 0L, 0L);],
+      AC_LINK_IFELSE([AC_LANG_PROGRAM(
+        [[#include <simage.h>]],
+        [[(void)simage_read_image(0L, 0L, 0L, 0L);]])],
         [sim_cv_simage_avail=true],
         [sim_cv_simage_avail=false])
+
       CPPFLAGS=$sim_ac_save_cppflags
       LDFLAGS=$sim_ac_save_ldflags
       LIBS=$sim_ac_save_libs

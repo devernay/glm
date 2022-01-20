@@ -16,7 +16,7 @@
 #ifdef __APPLE__
 #include <OpenGL/gl.h>
 #include <GLUT/glut.h>
-#include <GLUI/glui.h>
+#include <GL/glui.h>
 #else
 #include <GL/gl.h>
 #include <GL/glut.h>
